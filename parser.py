@@ -17,7 +17,7 @@ def set_parser():
     parser.add_argument('--lr', type = float, default = '0.01')
     parser.add_argument('--batch_size', type = int, default = '512')
     parser.add_argument('--length', type = int, default = 3000)
-    parser.add_argument('--epochs', type = int, default = 20)
+    parser.add_argument('--epochs', type = int, default = 30)
 
 
     parser.add_argument('--model', type = str, help = 'LSTM, RNN, MLP', default = 'MLP')

@@ -4,10 +4,11 @@ import os
 from tqdm import tqdm
 
 
-from models import *
+
 from ecg_data import ECG_dataset
 from parser import set_parser
-from utils import init_wandb, batch_acc, save_model
+from utils import init_wandb, batch_acc, save_model, get_learning_rate
+from model_args import create_model
 
 
 
@@ -35,41 +36,14 @@ if __name__ == '__main__':
                                         num_workers = 20, pin_memory = True, drop_last = True)
 
     # set model
-    if args.model == 'MLP':
-        model = mlp_model(
-                            num_blocks = 8, 
-                            sequen_size = args.length, 
-                            hidden_features = 1024, 
-                            classes = 4, 
-                            drop_out = 0.5
-                            ).cuda()
-    elif args.model == 'RNN':
-        input_size = 1
-        hidden_size = 40
-        num_layers = 2
-        batch_size = args.batch_size
-        h0 = torch.zeros(num_layers, batch_size, hidden_size).cuda()
-        model = rnn_model(  input_size = input_size,
-                            hidden_size = hidden_size, 
-                            num_layers = num_layers, 
-                            fc_in_features = hidden_size*args.length).cuda()
-    elif args.model == 'LSTM':
-        input_size = 1
-        hidden_size = 40
-        num_layers = 2
-        batch_size = args.batch_size
-        h0 = torch.zeros(num_layers, batch_size, hidden_size).cuda()
-        c0 = torch.zeros(num_layers, batch_size, hidden_size).cuda()
-        model = lstm_model(  input_size = input_size,
-                            hidden_size = hidden_size, 
-                            num_layers = num_layers, 
-                            fc_in_features = hidden_size*args.length).cuda()
+    model, c0, h0 = create_model(args)
 
     # set optimizer and loss
-    if args.opt == 'adam':
-        loss = torch.nn.CrossEntropyLoss()
-        optimizer = torch.optim.Adam(model.parameters(), lr = args.lr)
-    
+
+    loss = torch.nn.CrossEntropyLoss()
+    optimizer = torch.optim.Adam(model.parameters(), lr = args.lr)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', factor = 0.2, patience = 3)
+
 
 
     loss_list = list()
@@ -103,7 +77,8 @@ if __name__ == '__main__':
             one_epoch_acc.append(acc_batch)
         result = {
         'train loss': sum(one_epoch_loss) / len(one_epoch_loss),
-        'train accuracy': sum(one_epoch_acc) / len(one_epoch_acc)
+        'train accuracy': sum(one_epoch_acc) / len(one_epoch_acc),
+        'learning rate' : get_learning_rate(optimizer)
             }
         wandb.log(result, step = epoch)
 
@@ -133,7 +108,10 @@ if __name__ == '__main__':
             'valid loss': sum(one_epoch_loss) / len(one_epoch_loss),
             'valid accuracy': sum(one_epoch_acc) / len(one_epoch_acc)
                 }
-            wandb.log(result, step = epoch)
+            wandb.log(result, step = epoch) 
+            
+            scheduler.step(sum(one_epoch_loss) / len(one_epoch_loss))
+
 
 
     wandb.finish()

@@ -4,7 +4,9 @@ import torch
 
 
 
-
+def get_learning_rate(optimizer):
+    for param_group in optimizer.param_groups:
+        return param_group['lr']
 
 def init_wandb(args):
     wandb.init(
