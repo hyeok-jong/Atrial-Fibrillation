@@ -1,11 +1,7 @@
 import wandb
-import os
 import datetime
 import torch
 
-path = './dir/sub_dir/tmp1'
-
-os.makedirs(path, exist_ok=True)
 
 
 

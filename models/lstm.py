@@ -1,14 +1,13 @@
 import torch
 
-class rnn_model(torch.nn.Module):
+class lstm_model(torch.nn.Module):
     def __init__(self, input_size, hidden_size, num_layers, fc_in_features):
-        super().__init__()
-        self.rnn = torch.nn.RNN(
+        super(lstm_model, self).__init__()
+        self.lstm = torch.nn.LSTM(
             input_size = input_size, 
             hidden_size = hidden_size, 
             num_layers = num_layers, 
             batch_first = True,
-            nonlinearity = 'tanh',
             bidirectional = False)
             
         self.classifier = torch.nn.Sequential(
@@ -21,9 +20,9 @@ class rnn_model(torch.nn.Module):
                 ]
         )
 
-    def forward(self, h0, input_batch):
+    def forward(self, h0, c0, input_batch):
         
-        features, _ = self.rnn(input_batch.unsqueeze(dim = 2), h0)
+        features, _ = self.lstm(input_batch.unsqueeze(dim = 2), (h0, c0))
         features = torch.flatten(features, start_dim = 1)
         logits = self.classifier(features)
         return logits
