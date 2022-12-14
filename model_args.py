@@ -25,7 +25,7 @@ def create_model(args):
                             num_layers = num_layers, 
                             fc_in_features = hidden_size*args.length).cuda()
         c0 = None
-    elif args.model == 'LSTM':
+    elif args.model in ['LSTM', 'GRU']:
         input_size = 1
         hidden_size = 40
         num_layers = 2

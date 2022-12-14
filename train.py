@@ -64,7 +64,7 @@ if __name__ == '__main__':
                 output = model(input)
             elif args.model in ['RNN']:
                 output = model(h0, input)
-            elif args.model in ['LSTM']:
+            elif args.model in ['LSTM', 'GRU']:
                 output = model(h0, c0, input)
 
             loss_batch = loss(output, target)
@@ -97,7 +97,7 @@ if __name__ == '__main__':
                     output = model(input)
                 elif args.model in ['RNN']:
                     output = model(h0, input)
-                elif args.model in ['LSTM']:
+                elif args.model in ['LSTM', 'GRU']:
                     output = model(h0, c0, input)
                 loss_batch = loss(output, target)
                 acc_batch = batch_acc(output, target)
